@@ -1,0 +1,6 @@
+@Travella.API_HostAddress = http://localhost:5094
+
+GET {{Travella.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

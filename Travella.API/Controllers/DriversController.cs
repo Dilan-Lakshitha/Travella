@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Travella.Application.Services;
@@ -7,22 +5,19 @@ using Travella.Application.Services;
 namespace Travella.API.Controllers
 {
     [ApiController]
-    [Route("api/staff")]
+    [Route("api/drivers")]
     [Authorize(Roles = "ADMIN,STAFF")]
-    public class StaffController : ControllerBase
+    public class DriversController : ControllerBase
     {
         private readonly IStaffService _staffService;
 
-        public StaffController(IStaffService staffService)
+        public DriversController(IStaffService staffService)
         {
             _staffService = staffService;
         }
 
-        [HttpGet("available")]
-        public async Task<IActionResult> GetAvailableStaff(
-            [FromQuery] DateOnly startDate,
-            [FromQuery] DateOnly endDate,
-            [FromQuery] string? role)
+        [HttpGet]
+        public async Task<IActionResult> GetDrivers()
         {
             var companyIdValue = User.FindFirst("companyId")?.Value;
             if (!int.TryParse(companyIdValue, out var companyId) || companyId <= 0)
@@ -30,8 +25,9 @@ namespace Travella.API.Controllers
                 return BadRequest(new { error = "Company id claim is required." });
             }
 
-            var staff = await _staffService.GetAvailableStaffAsync(companyId, startDate, endDate, role);
-            return Ok(staff);
+            var rows = await _staffService.GetDriversAsync(companyId);
+            return Ok(rows);
         }
     }
 }
+

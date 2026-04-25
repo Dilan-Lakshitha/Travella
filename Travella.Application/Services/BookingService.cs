@@ -55,8 +55,8 @@ namespace Travella.Application.Services
                 {
                     var isAvailable = await _staffRepository.IsStaffAvailableAsync(
                         staffAssignment.StaffId,
-                        itinerary.StartDate.Date,
-                        itinerary.EndDate.Date);
+                        itinerary.StartDate,
+                        itinerary.EndDate);
 
                     if (!isAvailable)
                     {
@@ -66,8 +66,8 @@ namespace Travella.Application.Services
                     await _staffRepository.LockStaffForItineraryAsync(
                         dto.ItineraryId,
                         staffAssignment.StaffId,
-                        itinerary.StartDate.Date,
-                        itinerary.EndDate.Date);
+                        itinerary.StartDate,
+                        itinerary.EndDate);
                 }
 
                 var booking = new Booking

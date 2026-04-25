@@ -6,9 +6,17 @@ namespace Travella.Domain.Entities
     {
         public int Id { get; set; }
 
+        public int? CompanyId { get; set; }
+
         public string Name { get; set; } = null!;
 
         public string Role { get; set; } = null!;
+
+        public string? Phone { get; set; }
+
+        public int? Experience { get; set; }
+
+        public string? Availability { get; set; }
 
         public List<StaffAvailability> Availabilities { get; set; } = new();
 

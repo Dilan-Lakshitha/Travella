@@ -8,5 +8,7 @@ namespace Travella.API.Models
         public string Role { get; set; } = string.Empty;
         public int? CompanyId { get; set; }
         public DateTime ExpiresAtUtc { get; set; }
+
+        public bool IsFirstLogin { get; set; }
     }
 }

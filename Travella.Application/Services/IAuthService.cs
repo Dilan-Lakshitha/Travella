@@ -10,5 +10,6 @@ namespace Travella.Application.Services
     {
         Task<AuthUserDto> RegisterTravelerAsync(RegisterTravelerRequest request);
         Task<AuthUserDto?> LoginAsync(LoginRequest request);
+        Task ResetPasswordAsync(string email, string newPassword);
     }
 }

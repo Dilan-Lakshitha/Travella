@@ -7,5 +7,7 @@ namespace Travella.Application.DTOs
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public int? CompanyId { get; set; }
+
+        public bool IsFirstLogin { get; set; }
     }
 }

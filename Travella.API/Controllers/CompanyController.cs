@@ -6,7 +6,7 @@ namespace Travella.API.Controllers
 {
     [ApiController]
     [Route("api/company")]
-    [Authorize(Roles = "SUPER_ADMIN")]
+    [Authorize(Roles = "ADMIN")]
     public class CompanyController : ControllerBase
     {
         private readonly ICompanyService _companyService;

@@ -12,6 +12,11 @@ namespace Travella.Infrastructure.Persistence
         private IDbTransaction? _transaction;
 
         public IDbConnection Connection => _connection ?? throw new InvalidOperationException("Connection is not initialized.");
+
+        public IDbTransaction? CurrentTransaction => _transaction;
+
+        public bool HasActiveTransaction => _transaction != null && _connection != null;
+
         public IDbTransaction Transaction => _transaction ?? throw new InvalidOperationException("Transaction is not started.");
 
         public UnitOfWork(IDbConnectionFactory connectionFactory)
@@ -56,9 +61,15 @@ namespace Travella.Infrastructure.Persistence
 
         public Task RollbackAsync()
         {
-            if (_transaction != null)
+            if (_transaction == null)
+                return Task.CompletedTask;
+
+            try
             {
                 _transaction.Rollback();
+            }
+            catch
+            {
             }
 
             DisposeTransaction();

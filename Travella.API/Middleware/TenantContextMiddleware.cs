@@ -11,6 +11,12 @@ namespace Travella.API.Middleware
 
         public async Task Invoke(HttpContext context)
         {
+            if (context.Request.Path.StartsWithSegments("/api/auth", StringComparison.OrdinalIgnoreCase))
+            {
+                await _next(context);
+                return;
+            }
+
             var userId = context.User?.FindFirst("userId")?.Value;
             if (!string.IsNullOrWhiteSpace(userId))
             {

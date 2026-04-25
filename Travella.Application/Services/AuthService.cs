@@ -1,4 +1,5 @@
 using BCrypt.Net;
+using Microsoft.Extensions.Configuration;
 using Travella.API.Models;
 using Travella.Application.DTOs;
 using Travella.Application.Interfaces;
@@ -10,11 +11,13 @@ namespace Travella.Application.Services
     {
         private readonly IAuthRepository _authRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(IAuthRepository authRepository, IUnitOfWork unitOfWork)
+        public AuthService(IAuthRepository authRepository, IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _authRepository = authRepository;
             _unitOfWork = unitOfWork;
+            _configuration = configuration;
         }
 
         public async Task<AuthUserDto> RegisterTravelerAsync(RegisterTravelerRequest request)
@@ -32,10 +35,25 @@ namespace Travella.Application.Services
 
             var hash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
+            var companyId = request.CompanyId;
+            if (companyId is null or <= 0)
+            {
+                companyId = _configuration.GetValue<int?>("Travella:DefaultTravelerCompanyId");
+            }
+
+            if (companyId is null or <= 0)
+            {
+                throw new ArgumentException("CompanyId is required (set request.companyId or Travella:DefaultTravelerCompanyId in configuration).");
+            }
+
             await _unitOfWork.BeginAsync();
             try
             {
-                var userId = await _authRepository.CreateTravelerAsync(request.Name.Trim(), request.Email.Trim(), hash);
+                var userId = await _authRepository.CreateTravelerAsync(
+                    request.Name.Trim(),
+                    request.Email.Trim(),
+                    hash,
+                    companyId.Value);
                 await _unitOfWork.CommitAsync();
 
                 return new AuthUserDto
@@ -44,7 +62,7 @@ namespace Travella.Application.Services
                     Name = request.Name.Trim(),
                     Email = request.Email.Trim(),
                     Role = "TRAVELER",
-                    CompanyId = null
+                    CompanyId = companyId
                 };
             }
             catch
@@ -77,8 +95,42 @@ namespace Travella.Application.Services
                 Name = user.Name,
                 Email = user.Email,
                 Role = user.Role,
-                CompanyId = user.CompanyId
+                CompanyId = user.CompanyId,
+                IsFirstLogin = user.MustChangePassword
             };
+        }
+
+        public async Task ResetPasswordAsync(string email, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email is required.");
+            if (string.IsNullOrWhiteSpace(newPassword))
+                throw new ArgumentException("NewPassword is required.");
+            if (newPassword.Length < 8)
+                throw new ArgumentException("NewPassword must be at least 8 characters.");
+
+            var user = await _authRepository.GetByEmailAsync(email.Trim());
+            if (user == null || user.IsDeleted)
+                throw new InvalidOperationException("User not found.");
+
+            var hash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            await _unitOfWork.BeginAsync();
+            try
+            {
+                var updated = await _authRepository.UpdatePasswordAsync(email.Trim(), hash, mustChangePassword: false);
+                if (!updated)
+                {
+                    throw new InvalidOperationException("Failed to update password.");
+                }
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
     }
 }

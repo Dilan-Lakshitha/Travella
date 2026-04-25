@@ -16,7 +16,11 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-services.AddControllers();
+services.AddControllers().AddJsonOptions(options =>
+{
+    // Match Angular expectations (`startDate`, `overnightLocation`, `attractions`, etc.)
+    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 services.AddCors(options =>
@@ -72,6 +76,7 @@ services.AddScoped<IItineraryService, ItineraryService>();
 services.AddScoped<IBookingService, BookingService>();
 services.AddScoped<IStaffService, StaffService>();
 services.AddScoped<IAuthService, AuthService>();
+services.AddScoped<IAdminService, AdminService>();
 services.AddScoped<IApplicationService, ApplicationService>();
 services.AddScoped<ICompanyService, CompanyService>();
 services.AddScoped<IReviewService, ReviewService>();
@@ -87,8 +92,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthentication();
 app.UseMiddleware<TenantContextMiddleware>();
 app.UseAuthorization();

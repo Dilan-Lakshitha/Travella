@@ -9,12 +9,18 @@ namespace Travella.Application.Interfaces
     {
         Task<Staff?> GetStaffByIdAsync(int staffId);
 
-        Task<List<Staff>> GetAvailableStaffAsync(DateTime startDate, DateTime endDate, string? role = null);
+        Task<List<Staff>> GetAvailableStaffAsync(int companyId, DateOnly startDate, DateOnly endDate, string? role = null);
 
-        Task<bool> IsStaffAvailableAsync(int staffId, DateTime startDate, DateTime endDate);
+        Task<List<Staff>> GetDriversAsync(int companyId);
+
+        Task<List<Staff>> GetGuidesAsync(int companyId);
+
+        Task<int> CreateStaffResourceAsync(Staff staffResource);
+
+        Task<bool> IsStaffAvailableAsync(int staffId, DateOnly startDate, DateOnly endDate);
 
         Task AssignStaffToItineraryAsync(int itineraryId, int staffId);
 
-        Task LockStaffForItineraryAsync(int itineraryId, int staffId, DateTime startDate, DateTime endDate);
+        Task LockStaffForItineraryAsync(int itineraryId, int staffId, DateOnly startDate, DateOnly endDate);
     }
 }

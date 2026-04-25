@@ -5,7 +5,7 @@ using Travella.Application.Services;
 namespace Travella.API.Controllers
 {
     [ApiController]
-    [Route("api/review")]
+    [Route("api/itinerary")]
     [Authorize(Roles = "STAFF,ADMIN")]
     public class ReviewController : ControllerBase
     {
@@ -16,16 +16,22 @@ namespace Travella.API.Controllers
             _reviewService = reviewService;
         }
 
-        [HttpPost]
+        [HttpPost("review")]
         public async Task<IActionResult> Add([FromBody] AddReviewRequest request)
         {
             var reviewerId = int.Parse(User.FindFirst("userId")!.Value);
             var reviewerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)!.Value;
+            var companyIdValue = User.FindFirst("companyId")?.Value;
+            if (!int.TryParse(companyIdValue, out var companyId))
+            {
+                return BadRequest(new { error = "Company id claim is required." });
+            }
 
             var reviewId = await _reviewService.AddReviewAsync(
                 request.ItineraryId,
                 reviewerId,
                 reviewerRole,
+                companyId,
                 request.Comments,
                 request.Status
             );
@@ -38,6 +44,12 @@ namespace Travella.API.Controllers
     {
         public int ItineraryId { get; set; }
         public string Comments { get; set; } = string.Empty;
-        public string Status { get; set; } = "SUBMITTED";
+        // Supported values (drives workflow + inserted into tbl_itinerary_reviews.status):
+        // PENDING
+        // REQUESTED_CHANGES
+        // APPROVED_BY_STAFF
+        // APPROVED_BY_ADMIN
+        // REJECTED
+        public string Status { get; set; } = "PENDING";
     }
 }

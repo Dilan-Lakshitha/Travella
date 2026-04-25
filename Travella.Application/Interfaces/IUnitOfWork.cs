@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace Travella.Application.Interfaces
@@ -10,5 +11,11 @@ namespace Travella.Application.Interfaces
         Task CommitAsync();
 
         Task RollbackAsync();
+
+        bool HasActiveTransaction { get; }
+
+        IDbConnection Connection { get; }
+
+        IDbTransaction? CurrentTransaction { get; }
     }
 }

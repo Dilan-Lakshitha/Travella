@@ -8,7 +8,7 @@ namespace Travella.Domain.Entities
 
         public int StaffId { get; set; }
 
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         public string Status { get; set; } = null!;
 

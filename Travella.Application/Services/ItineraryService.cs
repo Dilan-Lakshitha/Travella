@@ -566,10 +566,10 @@ namespace Travella.Application.Services
                 }
 
                 await _staffRepository.AssignStaffToItineraryAsync(itineraryId, driverId);
-                await _staffRepository.LockStaffForItineraryAsync(itineraryId, driverId, start, end);
+                // Removed: await _staffRepository.LockStaffForItineraryAsync(itineraryId, driverId, start, end);
 
                 await _staffRepository.AssignStaffToItineraryAsync(itineraryId, guideId);
-                await _staffRepository.LockStaffForItineraryAsync(itineraryId, guideId, start, end);
+                // Removed: await _staffRepository.LockStaffForItineraryAsync(itineraryId, guideId, start, end);
 
                 await _unitOfWork.CommitAsync();
             }
@@ -644,7 +644,25 @@ namespace Travella.Application.Services
                 throw new InvalidOperationException("Cannot confirm without pricing details.");
             }
 
-            await _itineraryRepository.UpdateItineraryStatusAsync(itineraryId, "confirmed");
+            await _unitOfWork.BeginAsync();
+            try
+            {
+                await _itineraryRepository.UpdateItineraryStatusAsync(itineraryId, "confirmed");
+
+                // Fetch assigned staff and lock their availability
+                var assignedStaff = await _itineraryRepository.GetItineraryStaffAsync(itineraryId);
+                foreach (var staff in assignedStaff)
+                {
+                    await _staffRepository.LockStaffForItineraryAsync(itineraryId, staff.StaffId, itinerary.StartDate, itinerary.EndDate);
+                }
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task RejectItineraryAsync(int itineraryId, int companyId)

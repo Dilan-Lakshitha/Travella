@@ -599,7 +599,7 @@ VALUES (@ItineraryId, @StaffId);";
                     LIMIT 1
                 ) p ON true
                 WHERE i.company_id = @CompanyId
-                  AND LOWER(i.status) IN ('submitted', 'under_review')
+                  AND LOWER(i.status) IN ('submitted', 'under_review', 'returned_for_correction', 'resubmitted')
                 ORDER BY i.created_at DESC
             """;
 
@@ -691,9 +691,16 @@ VALUES (@ItineraryId, @StaffId);";
                     'submitted' AS Status,
                     i.updated_at::date AS SubmittedDate,
                     i.company_id AS CompanyId,
-                    i.total_price AS TotalPrice
+                    COALESCE(p.total_amount, i.total_price) AS TotalPrice
                 FROM tbl_itineraries i
                 INNER JOIN tbl_users u ON u.id = i.guest_id
+                LEFT JOIN LATERAL (
+                    SELECT pp.total_amount
+                    FROM tbl_itinerary_pricing pp
+                    WHERE pp.itinerary_id = i.id
+                    ORDER BY pp.created_at DESC
+                    LIMIT 1
+                ) p ON true
                 WHERE LOWER(i.status) = 'submitted'
                    OR (
                         LOWER(i.status) = 'under_review' AND (

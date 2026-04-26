@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text;
 using Travella.API.Middleware;
+using Travella.API.Hubs;
 using Travella.Application.Interfaces;
 using Travella.Application.Services;
 using Travella.Infrastructure.Persistence;
@@ -29,8 +30,15 @@ services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials(); // Required for WebSocket
     });
+});
+
+// Add SignalR
+services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 32 * 1024 * 1024; // 32 MB
 });
 
 var jwtSection = configuration.GetSection("Jwt");
@@ -102,5 +110,8 @@ app.UseMiddleware<TenantContextMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Map SignalR Hubs
+app.MapHub<ItineraryChatHub>("/hubs/itinerary-chat");
 
 app.Run();

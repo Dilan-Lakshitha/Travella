@@ -67,10 +67,9 @@ namespace Travella.Application.Services
                 throw new InvalidOperationException("You can only update pricing within your company.");
             }
 
-            if (!string.Equals(itinerary.Status, "approved_by_admin", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(itinerary.Status, "sent_to_admin", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(itinerary.Status, "approved_by_admin", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Margin update is only allowed for sent_to_admin/approved_by_admin itineraries.");
+                throw new InvalidOperationException("Margin update is only allowed for approved_by_admin itineraries.");
             }
 
             var updated = await _pricingRepository.UpdateMarginAsync(dto.ItineraryId, dto.ProfitMargin);

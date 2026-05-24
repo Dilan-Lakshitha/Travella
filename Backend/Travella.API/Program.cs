@@ -115,6 +115,7 @@ services.AddScoped<INotificationNotifier, NotificationNotifier>();
 services.AddScoped<ICalendarService, CalendarService>();
 services.AddScoped<IEmailService, SmtpEmailService>();
 services.AddScoped<IStaffEmailNotifier, Travella.Application.Services.StaffEmailNotifier>();
+services.AddScoped<IItineraryEmailNotifier, Travella.Application.Services.ItineraryEmailNotifier>();
 
 var app = builder.Build();
 
@@ -137,7 +138,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Map SignalR Hubs
 app.MapHub<ItineraryChatHub>("/hubs/itinerary-chat");
 app.MapHub<NotificationHub>("/hubs/notifications");
 

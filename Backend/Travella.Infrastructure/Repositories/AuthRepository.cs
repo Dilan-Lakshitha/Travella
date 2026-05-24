@@ -159,5 +159,28 @@ namespace Travella.Infrastructure.Repositories
             var rows = await connection.QueryAsync<StaffUserRow>(sql, new { CompanyId = companyId });
             return rows.Select(r => (r.UserId, r.Name, r.Email)).ToList();
         }
+
+        public async Task<(string Name, string Email)?> GetUserContactAsync(int userId)
+        {
+            const string sql = """
+                SELECT name, email
+                FROM tbl_users
+                WHERE id = @UserId
+                  AND is_deleted = false
+                LIMIT 1
+                """;
+
+            using var connection = GetConnection(useTransaction: false);
+            var row = await connection.QuerySingleOrDefaultAsync<StaffUserRow>(
+                sql,
+                new { UserId = userId });
+
+            if (row == null || string.IsNullOrWhiteSpace(row.Email))
+            {
+                return null;
+            }
+
+            return (row.Name, row.Email);
+        }
     }
 }

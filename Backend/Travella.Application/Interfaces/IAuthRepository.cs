@@ -14,5 +14,7 @@ namespace Travella.Application.Interfaces
         Task<List<(int UserId, string Name, string Email)>> GetCompanyStaffUsersAsync(int companyId);
 
         Task<List<(int UserId, string Name, string Email)>> GetCompanyAdminUsersAsync(int companyId);
+
+        Task<(string Name, string Email)?> GetUserContactAsync(int userId);
     }
 }

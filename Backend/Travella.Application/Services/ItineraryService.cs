@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Travella.Application.DTOs;
+using Travella.Application.Enums;
 using Travella.Application.Interfaces;
 using Travella.Domain.Entities;
 
@@ -17,6 +18,7 @@ namespace Travella.Application.Services
         private readonly IItineraryChatNotifier _chatNotifier;
         private readonly INotificationService _notificationService;
         private readonly IStaffEmailNotifier _staffEmailNotifier;
+        private readonly IItineraryEmailNotifier _itineraryEmailNotifier;
 
         public ItineraryService(
             IItineraryRepository itineraryRepository,
@@ -25,7 +27,8 @@ namespace Travella.Application.Services
             IUnitOfWork unitOfWork,
             IItineraryChatNotifier chatNotifier,
             INotificationService notificationService,
-            IStaffEmailNotifier staffEmailNotifier)
+            IStaffEmailNotifier staffEmailNotifier,
+            IItineraryEmailNotifier itineraryEmailNotifier)
         {
             _itineraryRepository = itineraryRepository;
             _staffRepository = staffRepository;
@@ -34,6 +37,7 @@ namespace Travella.Application.Services
             _chatNotifier = chatNotifier;
             _notificationService = notificationService;
             _staffEmailNotifier = staffEmailNotifier;
+            _itineraryEmailNotifier = itineraryEmailNotifier;
         }
 
         public Task<SaveGoogleAttractionResponseDto> SaveGoogleAttractionAsync(SaveGoogleAttractionDto dto)
@@ -566,7 +570,9 @@ namespace Travella.Application.Services
                     travelerId,
                     itinerary.CompanyId ?? 0,
                     isReturned);
-                await NotifyStatusEmailAsync(itineraryId, nextStatus);
+                await NotifyWorkflowEmailAsync(
+                    itineraryId,
+                    isReturned ? ItineraryEmailEvent.Resubmitted : ItineraryEmailEvent.Submitted);
             }
             catch
             {
@@ -623,7 +629,6 @@ namespace Travella.Application.Services
                         await _unitOfWork.CommitAsync();
                         status = "under_review";
                         await _notificationService.NotifyItineraryUnderReviewAsync(itineraryId, itinerary.GuestId);
-                        await NotifyStatusEmailAsync(itineraryId, "under_review");
                     }
                     catch
                     {
@@ -668,7 +673,6 @@ namespace Travella.Application.Services
             if (movedToUnderReview)
             {
                 await _notificationService.NotifyItineraryUnderReviewAsync(itineraryId, itinerary.GuestId);
-                await NotifyStatusEmailAsync(itineraryId, "under_review");
             }
 
             var assignedReviewerId = await _itineraryRepository.GetAssignedReviewerIdAsync(itineraryId);
@@ -802,7 +806,7 @@ namespace Travella.Application.Services
 
                 await _itineraryRepository.UpdateItineraryStatusAsync(itineraryId, "approved_by_admin");
                 await _notificationService.NotifyItineraryApprovedAsync(itineraryId, itinerary.GuestId);
-                await NotifyStatusEmailAsync(itineraryId, "approved_by_admin");
+                await NotifyWorkflowEmailAsync(itineraryId, ItineraryEmailEvent.Approved);
                 return;
             }
 
@@ -894,7 +898,7 @@ namespace Travella.Application.Services
                 await _itineraryRepository.UpdateItineraryStatusAsync(itineraryId, "rejected");
                 await _unitOfWork.CommitAsync();
                 await _notificationService.NotifyItineraryRejectedAsync(itineraryId, itinerary.GuestId);
-                await NotifyStatusEmailAsync(itineraryId, "rejected");
+                await NotifyWorkflowEmailAsync(itineraryId, ItineraryEmailEvent.Rejected);
             }
             catch
             {
@@ -943,7 +947,6 @@ namespace Travella.Application.Services
                     itineraryId,
                     itinerary.GuestId,
                     companyId);
-                await NotifyStatusEmailAsync(itineraryId, "sent_to_admin");
             }
             catch
             {
@@ -1123,11 +1126,14 @@ namespace Travella.Application.Services
 
                 await _itineraryRepository.UpdateItineraryStatusAsync(itineraryId, "returned_for_correction");
                 await _itineraryRepository.SetAssignedReviewerAsync(itineraryId, senderId);
+                var correctionNotes = string.IsNullOrWhiteSpace(message)
+                    ? "Please update your itinerary based on staff feedback."
+                    : message;
                 var messageId = await _itineraryRepository.AddItineraryMessageAsync(
                     itineraryId,
                     senderId,
                     senderRole.ToUpperInvariant(),
-                    string.IsNullOrWhiteSpace(message) ? "Please update your itinerary based on staff feedback." : message,
+                    correctionNotes,
                     "REQUEST_CHANGE");
                 await _unitOfWork.CommitAsync();
 
@@ -1135,7 +1141,10 @@ namespace Travella.Application.Services
                     itineraryId,
                     itinerary.GuestId,
                     senderId);
-                await NotifyStatusEmailAsync(itineraryId, "returned_for_correction");
+                await NotifyWorkflowEmailAsync(
+                    itineraryId,
+                    ItineraryEmailEvent.ReturnedForCorrection,
+                    new ItineraryEmailContext { CorrectionNotes = correctionNotes });
 
                 var travelerMessages = await _itineraryRepository.GetItineraryMessagesAsync(itineraryId, includeInternalNotes: false);
                 var created = travelerMessages.FirstOrDefault(m => m.Id == messageId);
@@ -1199,15 +1208,18 @@ namespace Travella.Application.Services
             }
         }
 
-        private async Task NotifyStatusEmailAsync(int itineraryId, string statusLabel)
+        private async Task NotifyWorkflowEmailAsync(
+            int itineraryId,
+            ItineraryEmailEvent workflowEvent,
+            ItineraryEmailContext? context = null)
         {
             var itinerary = await _itineraryRepository.GetItineraryByIdAsync(itineraryId);
-            if (itinerary == null || itinerary.CompanyId is not int cid || cid <= 0)
+            if (itinerary == null)
             {
                 return;
             }
 
-            await _staffEmailNotifier.NotifyItineraryStatusChangedAsync(itinerary, cid, statusLabel);
+            await _itineraryEmailNotifier.NotifyAsync(itinerary, workflowEvent, context);
         }
     }
 }

@@ -273,7 +273,7 @@ WHERE id = @Id;";
 
         public async Task<int> EnsureMealPlanIdAsync(string? mealPlanCode)
         {
-            var code = string.IsNullOrWhiteSpace(mealPlanCode) ? "BB" : mealPlanCode.Trim().ToUpperInvariant();
+            var code = string.IsNullOrWhiteSpace(mealPlanCode) ? "BB" : mealPlanCode.Trim();
             var (conn, tran) = RequireActiveTransaction();
 
             const string findSql = """

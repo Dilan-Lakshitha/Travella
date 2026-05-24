@@ -43,29 +43,29 @@ namespace Travella.API.Hubs
             await Clients.Group(groupName).SendAsync("ReceiveMessage", messageData);
         }
 
-        /// <summary>
-        /// Notify about typing status
-        /// </summary>
-        public async Task NotifyTyping(int itineraryId, int senderId, string senderName)
+        public async Task NotifyTyping(int itineraryId, int senderId, string senderRole)
         {
             var groupName = $"itinerary-{itineraryId}";
-            await Clients.GroupExcept(groupName, Context.ConnectionId).SendAsync("UserTyping", new
-            {
-                senderId,
-                senderName
-            });
+
+            await Clients.GroupExcept(groupName, Context.ConnectionId)
+                .SendAsync("UserTyping", new
+                {
+                    itineraryId,
+                    senderId,
+                    senderRole
+                });
         }
 
-        /// <summary>
-        /// Notify when user stops typing
-        /// </summary>
         public async Task NotifyStoppedTyping(int itineraryId, int senderId)
         {
             var groupName = $"itinerary-{itineraryId}";
-            await Clients.GroupExcept(groupName, Context.ConnectionId).SendAsync("UserStoppedTyping", new
-            {
-                senderId
-            });
+
+            await Clients.GroupExcept(groupName, Context.ConnectionId)
+                .SendAsync("UserStoppedTyping", new
+                {
+                    itineraryId,
+                    senderId
+                });
         }
     }
 }

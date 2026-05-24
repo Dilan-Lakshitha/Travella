@@ -6,24 +6,15 @@ namespace Travella.Application.DTOs
     public class ItineraryListItemDto
     {
         public int Id { get; set; }
-
-        // Stored/derived metadata for dashboards
         public int GuestId { get; set; }
         public string GuestName { get; set; } = string.Empty;
-
         public string TripName { get; set; } = string.Empty;
         public string Destination { get; set; } = string.Empty;
         public int DaysCount { get; set; }
-
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
-
-        // Raw DB status (tbl_itineraries.status)
         public string RawStatus { get; set; } = string.Empty;
-
-        // UI-friendly status (draft/submitted/approved/confirmed/corrected/rejected)
         public string Status { get; set; } = string.Empty;
-
         public DateOnly? SubmittedDate { get; set; }
 
         public int? CompanyId { get; set; }
@@ -110,5 +101,11 @@ namespace Travella.Application.DTOs
     {
         public int ItineraryId { get; set; }
         public decimal ProfitMargin { get; set; }
+    }
+    public sealed class ChatTypingDto
+    {
+        public int SenderId { get; set; }
+        public string SenderName { get; set; } = string.Empty;
+        public string SenderRole { get; set; } = string.Empty;
     }
 }

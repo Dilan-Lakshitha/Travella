@@ -1,5 +1,6 @@
 using System;
 using Travella.Application.DTOs;
+using Travella.Application.Enums;
 using Travella.Application.Interfaces;
 
 namespace Travella.Application.Services
@@ -10,20 +11,20 @@ namespace Travella.Application.Services
         private readonly IPricingRepository _pricingRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
-        private readonly IStaffEmailNotifier _staffEmailNotifier;
+        private readonly IItineraryEmailNotifier _itineraryEmailNotifier;
 
         public PricingService(
             IItineraryRepository itineraryRepository,
             IPricingRepository pricingRepository,
             IUnitOfWork unitOfWork,
             INotificationService notificationService,
-            IStaffEmailNotifier staffEmailNotifier)
+            IItineraryEmailNotifier itineraryEmailNotifier)
         {
             _itineraryRepository = itineraryRepository;
             _pricingRepository = pricingRepository;
             _unitOfWork = unitOfWork;
             _notificationService = notificationService;
-            _staffEmailNotifier = staffEmailNotifier;
+            _itineraryEmailNotifier = itineraryEmailNotifier;
         }
 
         public async Task<ItineraryPricingDetailDto> CreatePricingAsync(ItineraryPricingInputDto dto, int createdBy, int companyId)
@@ -57,9 +58,13 @@ namespace Travella.Application.Services
                 await _unitOfWork.CommitAsync();
                 await _notificationService.NotifyItineraryPricedAsync(dto.ItineraryId, itinerary.GuestId);
                 var priced = await _itineraryRepository.GetItineraryByIdAsync(dto.ItineraryId);
+                var pricingDetail = await _pricingRepository.GetLatestByItineraryIdAsync(dto.ItineraryId);
                 if (priced != null)
                 {
-                    await _staffEmailNotifier.NotifyItineraryStatusChangedAsync(priced, companyId, "priced");
+                    await _itineraryEmailNotifier.NotifyAsync(
+                        priced,
+                        ItineraryEmailEvent.Priced,
+                        new ItineraryEmailContext { Pricing = pricingDetail });
                 }
             }
             catch

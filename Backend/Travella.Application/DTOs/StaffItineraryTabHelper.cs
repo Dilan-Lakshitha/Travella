@@ -12,7 +12,7 @@ namespace Travella.Application.DTOs
                 ["pending"] = new[] { "submitted" },
                 ["in-review"] = new[] { "under_review" },
                 ["returned"] = new[] { "returned_for_correction", "resubmitted" },
-                ["priced"] = new[] { "priced" },
+                ["priced"] = new[] { "priced", "sent_to_admin" },
                 ["approved"] = new[] { "approved_by_staff" },
                 ["completed"] = new[] { "approved_by_admin", "confirmed" },
                 ["rejected"] = new[] { "rejected" },

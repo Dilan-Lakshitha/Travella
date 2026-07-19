@@ -35,15 +35,17 @@ namespace Travella.Application.Services
 
             var hash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            var companyId = request.CompanyId;
-            if (companyId is null or <= 0)
+            if (string.IsNullOrWhiteSpace(request.CompanySlug))
             {
-                companyId = _configuration.GetValue<int?>("Travella:DefaultTravelerCompanyId");
+                throw new ArgumentException("Company slug is required.");
             }
 
-            if (companyId is null or <= 0)
+            var companyId = await _authRepository.GetCompanyIdBySlugAsync(request.CompanySlug);
+
+            if (companyId == null)
             {
-                throw new ArgumentException("CompanyId is required (set request.companyId or Travella:DefaultTravelerCompanyId in configuration).");
+                throw new InvalidOperationException(
+                    "Company not found.");
             }
 
             await _unitOfWork.BeginAsync();
@@ -53,7 +55,7 @@ namespace Travella.Application.Services
                     request.Name.Trim(),
                     request.Email.Trim(),
                     hash,
-                    companyId.Value);
+                    companyId);
                 await _unitOfWork.CommitAsync();
 
                 return new AuthUserDto
@@ -83,10 +85,6 @@ namespace Travella.Application.Services
 
             var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
             if (!isPasswordValid)
-                return null;
-
-            if (!string.IsNullOrWhiteSpace(request.Role) &&
-                !user.Role.Equals(request.Role, StringComparison.OrdinalIgnoreCase))
                 return null;
 
             return new AuthUserDto

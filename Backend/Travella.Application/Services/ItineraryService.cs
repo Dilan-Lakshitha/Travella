@@ -174,7 +174,9 @@ namespace Travella.Application.Services
         }
 
         public Task<List<ItineraryListItemDto>> GetOwnerSubmittedItinerariesAsync()
-            => _itineraryRepository.GetAllOwnerSubmittedItinerariesAsync();
+        {
+            return _itineraryRepository.GetAllOwnerSubmittedItinerariesAsync();
+        }
 
         private async Task<bool> CanTravelerEditItineraryAsync(Itinerary itinerary)
         {
@@ -445,10 +447,14 @@ namespace Travella.Application.Services
         }
 
         public Task<List<ItineraryListItemDto>> GetGuestItinerariesAsync(int guestId)
-            => _itineraryRepository.GetGuestItinerariesAsync(guestId);
+        {
+            return _itineraryRepository.GetGuestItinerariesAsync(guestId);
+        }
 
         public Task<List<ItineraryListItemDto>> GetSubmittedItinerariesAsync(int companyId)
-            => _itineraryRepository.GetSubmittedItinerariesAsync(companyId);
+        {
+            return _itineraryRepository.GetSubmittedItinerariesAsync(companyId);
+        }
 
         public async Task<List<ItineraryListItemDto>> GetStaffItinerariesByTabAsync(int companyId, string tab)
         {
@@ -522,10 +528,14 @@ namespace Travella.Application.Services
         }
 
         public Task SubmitItineraryAsync(int itineraryId, int travelerId)
-            => SubmitOrResubmitItineraryAsync(itineraryId, travelerId, requireReturned: false);
+        {
+            return SubmitOrResubmitItineraryAsync(itineraryId, travelerId, requireReturned: false);
+        }
 
         public Task ResubmitItineraryAsync(int itineraryId, int travelerId)
-            => SubmitOrResubmitItineraryAsync(itineraryId, travelerId, requireReturned: true);
+        {
+            return SubmitOrResubmitItineraryAsync(itineraryId, travelerId, requireReturned: true);
+        }
 
         private async Task SubmitOrResubmitItineraryAsync(int itineraryId, int travelerId, bool requireReturned)
         {
@@ -582,7 +592,9 @@ namespace Travella.Application.Services
         }
 
         public Task MarkUnderReviewAsync(int itineraryId, int companyId, int staffUserId)
-            => AssignReviewerAsync(itineraryId, companyId, staffUserId);
+        {
+            return AssignReviewerAsync(itineraryId, companyId, staffUserId);
+        }
 
         public async Task<AssignReviewerResultDto> AssignReviewerAsync(int itineraryId, int companyId, int staffUserId)
         {
@@ -1092,7 +1104,9 @@ namespace Travella.Application.Services
         }
 
         public Task RequestCorrectionAsync(int itineraryId, int senderId, string senderRole, int companyId, string message)
-            => ReturnItineraryForCorrectionAsync(itineraryId, senderId, senderRole, companyId, message);
+        {
+            return ReturnItineraryForCorrectionAsync(itineraryId, senderId, senderRole, companyId, message);
+        }
 
         public async Task ReturnItineraryForCorrectionAsync(
             int itineraryId,

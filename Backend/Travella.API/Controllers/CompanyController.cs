@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Travella.Application.DTOs;
 using Travella.Application.Services;
 
 namespace Travella.API.Controllers
 {
     [ApiController]
     [Route("api/company")]
-    [Authorize(Roles = "ADMIN")]
     public class CompanyController : ControllerBase
     {
         private readonly ICompanyService _companyService;
@@ -16,27 +16,26 @@ namespace Travella.API.Controllers
             _companyService = companyService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateCompanyRequest request)
+        [HttpPost("Creation")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Create(
+            [FromBody] CreateCompanyRequest request)
         {
-            var createdByClaim = User.FindFirst("userId")?.Value;
-            var createdBy = int.TryParse(createdByClaim, out var value) ? value : 0;
+            var result = await _companyService.CreateCompanyAsync(request,null);
 
-            var companyId = await _companyService.CreateCompanyAsync(
-                request.Name,
-                request.Email,
-                request.Phone,
-                createdBy
-            );
-
-            return Ok(new { companyId });
+            return Ok(result);
         }
-    }
 
-    public class CreateCompanyRequest
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
+        [HttpPost("applications")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Submit([FromBody] CreateCompanyApplicationRequest request)
+        {
+            var applicationId = await _companyService.SubmitApplicationAsync(request);
+
+            return Ok(new
+            {
+                applicationId, message = "Company application submitted successfully."
+            });
+        }
     }
 }

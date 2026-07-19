@@ -22,7 +22,6 @@ var configuration = builder.Configuration;
 
 services.AddControllers().AddJsonOptions(options =>
 {
-    // Match Angular expectations (`startDate`, `overnightLocation`, `attractions`, etc.)
     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
 });
 services.AddEndpointsApiExplorer();
@@ -34,14 +33,13 @@ services.AddCors(options =>
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Required for WebSocket
+              .AllowCredentials();
     });
 });
 
-// Add SignalR
 services.AddSignalR(options =>
 {
-    options.MaximumReceiveMessageSize = 32 * 1024 * 1024; // 32 MB
+    options.MaximumReceiveMessageSize = 32 * 1024 * 1024;
 });
 
 var jwtSection = configuration.GetSection("Jwt");
@@ -82,12 +80,11 @@ services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 services.AddAuthorization();
 
-// Infrastructure
+
 services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 services.AddScoped<UnitOfWork>();
 services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());
 
-// Repositories
 services.AddScoped<IItineraryRepository, ItineraryRepository>();
 services.AddScoped<IBookingRepository, BookingRepository>();
 services.AddScoped<IStaffRepository, StaffRepository>();
@@ -98,7 +95,6 @@ services.AddScoped<IReviewRepository, ReviewRepository>();
 services.AddScoped<IPricingRepository, PricingRepository>();
 services.AddScoped<ICalendarRepository, CalendarRepository>();
 
-// Services
 services.AddScoped<IItineraryService, ItineraryService>();
 services.AddScoped<IBookingService, BookingService>();
 services.AddScoped<IStaffService, StaffService>();
@@ -114,8 +110,9 @@ services.AddScoped<INotificationService, NotificationService>();
 services.AddScoped<INotificationNotifier, NotificationNotifier>();
 services.AddScoped<ICalendarService, CalendarService>();
 services.AddScoped<IEmailService, SmtpEmailService>();
-services.AddScoped<IStaffEmailNotifier, Travella.Application.Services.StaffEmailNotifier>();
-services.AddScoped<IItineraryEmailNotifier, Travella.Application.Services.ItineraryEmailNotifier>();
+services.AddScoped<IStaffEmailNotifier, StaffEmailNotifier>();
+services.AddScoped<IItineraryEmailNotifier, ItineraryEmailNotifier>();
+services.AddScoped<ICompanyEmailNotifier, CompanyEmailNotifier>();
 
 var app = builder.Build();
 

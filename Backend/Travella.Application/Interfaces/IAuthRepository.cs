@@ -5,7 +5,10 @@ namespace Travella.Application.Interfaces
     public interface IAuthRepository
     {
         Task<AuthUserRecord?> GetByEmailAsync(string email);
+
         Task<int> CreateTravelerAsync(string name, string email, string passwordHash, int companyId);
+
+        Task<int> GetCompanyIdBySlugAsync(string companyslug);
 
         Task<int> CreateStaffUserAsync(string name, string email, int companyId, string passwordHash, bool mustChangePassword);
 

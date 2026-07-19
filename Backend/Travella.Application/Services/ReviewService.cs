@@ -40,7 +40,6 @@ namespace Travella.Application.Services
                 throw new InvalidOperationException("Review status is required.");
             }
 
-            // Strict workflow transitions driven by review decision.
             // - STAFF:
             //   PENDING: submitted -> under_review (stay)
             //   REQUESTED_CHANGES: under_review -> under_review (stay)
@@ -64,7 +63,6 @@ namespace Travella.Application.Services
                 else if (string.Equals(normalizedStatus, "UNDER_REVIEW", StringComparison.OrdinalIgnoreCase) ||
                          string.Equals(normalizedStatus, "PENDING", StringComparison.OrdinalIgnoreCase))
                 {
-                    // BACKCOMPAT: if caller still sends UNDER_REVIEW, store it as PENDING.
                     var reviewToInsert = "PENDING";
                     var reviewableStatus = ItineraryStatusHelper.Normalize(itinerary.Status);
                     if (reviewableStatus is not ("submitted" or "under_review" or "resubmitted"))
@@ -78,7 +76,6 @@ namespace Travella.Application.Services
                         await _notificationService.NotifyItineraryUnderReviewAsync(itineraryId, itinerary.GuestId);
                     }
 
-                    // Keep itinerary status under_review.
                     normalizedStatus = reviewToInsert;
                 }
                 else if (string.Equals(normalizedStatus, "REQUESTED_CHANGES", StringComparison.OrdinalIgnoreCase))
@@ -146,7 +143,6 @@ namespace Travella.Application.Services
                 throw new InvalidOperationException("Unsupported reviewer role.");
             }
 
-            // Insert the review record after status transition (or after validating stay-in-place).
             return await _reviewRepository.AddAsync(
                 itineraryId,
                 reviewerId,

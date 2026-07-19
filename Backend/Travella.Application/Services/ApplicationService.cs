@@ -12,6 +12,8 @@ namespace Travella.Application.Services
         }
 
         public Task<int> SubmitCompanyApplicationAsync(string companyName, string email, string phone)
-            => _applicationRepository.CreateAsync(companyName, email, phone);
+        {
+           return _applicationRepository.CreateAsync(companyName, email, phone);
+        }
     }
 }

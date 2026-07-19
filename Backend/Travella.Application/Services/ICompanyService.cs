@@ -1,7 +1,10 @@
+using Travella.Application.DTOs;
+
 namespace Travella.Application.Services
 {
     public interface ICompanyService
     {
-        Task<int> CreateCompanyAsync(string name, string email, string phone, int createdBy);
+        Task<CreateCompanyResponse> CreateCompanyAsync(CreateCompanyRequest request, int? createdBy);
+        Task<int> SubmitApplicationAsync(CreateCompanyApplicationRequest request);
     }
 }

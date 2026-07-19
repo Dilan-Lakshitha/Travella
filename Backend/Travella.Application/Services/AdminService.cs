@@ -127,11 +127,12 @@ namespace Travella.Application.Services
         }
 
         public Task<List<(int UserId, string Name, string Email)>> GetCompanyStaffUsersAsync(int companyId)
-            => _authRepository.GetCompanyStaffUsersAsync(companyId);
+        {
+           return _authRepository.GetCompanyStaffUsersAsync(companyId);
+        }
 
         private static string GenerateTemporaryPassword()
         {
-            // 12 chars: uppercase + lowercase + digits; URL-safe-ish
             const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
             Span<byte> bytes = stackalloc byte[12];
             RandomNumberGenerator.Fill(bytes);

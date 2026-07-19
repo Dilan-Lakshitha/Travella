@@ -78,6 +78,15 @@ namespace Travella.Infrastructure.Repositories
             return userId;
         }
 
+        public async Task<int> GetCompanyIdBySlugAsync(string slug)
+        {
+            const string sql = """
+                        SELECT id FROM tbl_company WHERE LOWER(slug) = LOWER(@Slug) AND status = 'ACTIVE'LIMIT 1;
+                        """;
+            using var connection = GetConnection(useTransaction: false);
+            return await connection.ExecuteScalarAsync<int>(sql,new{Slug = slug.Trim()});
+        }
+
         public async Task<int> CreateStaffUserAsync(string name, string email, int companyId, string passwordHash, bool mustChangePassword)
         {
             const string userSql = """
